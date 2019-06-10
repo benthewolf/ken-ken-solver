@@ -60,7 +60,8 @@ public class Parser {
         }
 
         catch (IOException e){
-            System.out.println(e.getStackTrace());
+            System.out.println(e.getMessage());
+            //System.out.println(e.getStackTrace());
         }
 
         return new KenBoard(line, map);

@@ -24,7 +24,7 @@ public class Cage {
     private void setChecker (){
         this.checker.put(Constraint.METHOD.DIVIDE, e -> {
             if (this.constraints.get(0).getCurrentVal()
-                    / this.constraints.get(1).getCurrentVal() != this.result){
+                    / this.constraints.get(1).getCurrentVal() == this.result){
                 return true;
             }
 
@@ -33,7 +33,7 @@ public class Cage {
 
         this.checker.put(Constraint.METHOD.SUBTRACT, e ->{
           if (Math.abs(this.constraints.get(0).getCurrentVal()
-                  - this.constraints.get(1).getCurrentVal()) != this.result){
+                  - this.constraints.get(1).getCurrentVal()) == this.result){
               return true;}
 
           else
