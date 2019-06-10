@@ -1,7 +1,5 @@
 package kenkensolver;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.*;
 
 public class Constraint {
@@ -12,7 +10,6 @@ public class Constraint {
     private METHOD method;
 
     private int result;
-    private int suggestedValue;
     private String coordinates;
     private String row;
     private String coloumn;

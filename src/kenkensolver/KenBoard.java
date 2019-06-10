@@ -1,9 +1,5 @@
 package kenkensolver;
-
-import kenkensolver.Constraint;
-
 import java.util.HashMap;
-import java.util.List;
 
 public class KenBoard {
 

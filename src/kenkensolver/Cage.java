@@ -1,10 +1,6 @@
 package kenkensolver;
-
-import java.lang.invoke.LambdaConversionException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Stack;
-import java.util.function.Function;
 
 interface implement{
     boolean run(Constraint.METHOD a);
@@ -84,7 +80,7 @@ public class Cage {
     }
 
     public boolean isFull(){
-        if (this.getSize() == this.constraints.size() -1 ){
+        if (this.getSize() == this.constraints.size()){
             return true;
         }
 

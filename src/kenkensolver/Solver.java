@@ -35,7 +35,6 @@ public class Solver {
     }
 
 
-
     private void actualSolve (int[] coords){
         //if(coords[0] == 3 && coords[1] == 3){return;}
 
@@ -69,7 +68,7 @@ public class Solver {
             System.out.println();
             actualSolve(increment(coords));
         }
-        if (currentConstraint.getMethod() == Constraint.METHOD.EQUALTO ){
+        if (currentConstraint.getMethod() == Constraint.METHOD.EQUALTO){
             this.stack.push(currentConstraint);
             currentConstraint.setCurrentVal(currentConstraint.getPossibleValues().get(0));
             System.out.printf("Moving Forwards \n Row %3d : Column %3d : CurrentVal %3d", currentConstraint.getRowNumber(),
@@ -98,10 +97,24 @@ public class Solver {
 
         this.rows.get(currentRow).add(currentConstraint.getCurrentVal());
         this.coloumns.get(currentColumn).add(currentConstraint.getCurrentVal());
-        System.out.printf("Moving Forward \n Row %3d : Column %3d : CurrentVal %3d", currentConstraint.getRowNumber(),
-                currentConstraint.getColoumnNumber(), currentConstraint.getCurrentVal());
         System.out.println();
         this.stack.push(currentConstraint);
+
+        currentConstraint.getCage().getConstraints().push(currentConstraint);
+        if (currentConstraint.getCage().isFull()){
+            if(!currentConstraint.getCage().isCageSatisfied()){
+                if(currentConstraint.getSearch().size() == 0){
+                    while(!stack.peek().equals(currentConstraint.getCage().getConstraints().peek()))
+                        this.stack.pop();
+                        actualSolve(new int[]{this.stack.peek().getRowNumber(), this.stack.peek().getColoumnNumber()});
+                }
+                else{
+                    actualSolve(coords);
+                }
+            }
+        }
+        System.out.printf("Moving Forward \n Row %3d : Column %3d : CurrentVal %3d", currentConstraint.getRowNumber(),
+                currentConstraint.getColoumnNumber(), currentConstraint.getCurrentVal());
         actualSolve(increment(coords));
 
 }
