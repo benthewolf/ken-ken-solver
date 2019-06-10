@@ -1,54 +1,59 @@
-if (!this.stack.isEmpty() && this.stack.peek().equals(currentConstraint)){
+ private void retreat (int[] coords){
+        String current = String.format("%02d",Integer.parseInt(Integer.toString(coords[0]) + coords[1]));
+        Constraint currentConstraint = this.board.getConstraints().get(current);
+        String currentRow = currentConstraint.getRow();
+        String currentColumn = currentConstraint.getColoumn();
+        if (!this.stack.isEmpty() && this.stack.peek().equals(currentConstraint)){
             if (currentConstraint.getMethod() == Constraint.METHOD.EQUALTO ){
                 this.stack.pop();
                 currentConstraint.setCurrentVal(currentConstraint.getPossibleValues().get(0));
                 System.out.printf("Moving Backwards \n Row %3d : Column %3d : CurrentVal %3d", currentConstraint.getRowNumber(),
                         currentConstraint.getColoumnNumber(), currentConstraint.getCurrentVal());
                 System.out.println();
-                actualSolve(decrement(coords));
+                this.retreat(decrement(coords));
             }
-            currentConstraint.getCage().getConstraints().push(currentConstraint);
-            if (currentConstraint.getCage().isFull()){
-                if(!currentConstraint.getCage().isCageSatisfied()){
-                    currentConstraint.getCage().getConstraints().pop();
-                    if(currentConstraint.getSearch().size() == 0){
-                        while(!stack.peek().equals(currentConstraint.getCage().getConstraints().peek()))
-                            this.stack.pop();
-                            actualSolve(new int[]{currentConstraint.getRowNumber(), currentConstraint.getColoumnNumber()});
-                    }
-                    else{
-                        actualSolve(coords);
-                    }
-                }
-            }
+
             this.rows.get(currentRow).remove(currentConstraint.getCurrentVal());
             this.coloumns.get(currentColumn).remove(currentConstraint.getCurrentVal());
+
             if (currentConstraint.getSearch().size() == 0){
+                currentConstraint.getCage().getConstraints().pop();
                 this.stack.pop();
-              actualSolve(decrement(coords));
+                this.retreat(decrement(coords));
             }
             currentConstraint.setCurrentVal(currentConstraint.getSearch().poll());
 
             this.rows.get(currentRow).add(currentConstraint.getCurrentVal());
             this.coloumns.get(currentColumn).add(currentConstraint.getCurrentVal());
+
             System.out.printf("Moving Forward \n Row %3d : Column %3d : CurrentVal %3d", currentConstraint.getRowNumber(),
                     currentConstraint.getColoumnNumber(), currentConstraint.getCurrentVal());
             System.out.println();
-            actualSolve(increment(coords));
+            forwardSolve(increment(coords));
         }
-        if (currentConstraint.getMethod() == Constraint.METHOD.EQUALTO ){
+
+    }
+
+    private void forwardSolve (int[] coords){
+        String current = String.format("%02d",Integer.parseInt(Integer.toString(coords[0]) + coords[1]));
+        Constraint currentConstraint = this.board.getConstraints().get(current);
+        String currentRow = currentConstraint.getRow();
+        String currentColumn = currentConstraint.getColoumn();
+
+
+        if (currentConstraint.getMethod() == Constraint.METHOD.EQUALTO){
             this.stack.push(currentConstraint);
-            currentConstraint.setCurrentVal(currentConstraint.getPossibleValues().get(0));
+            currentConstraint.setCurrentVal(0);
             System.out.printf("Moving Forwards \n Row %3d : Column %3d : CurrentVal %3d", currentConstraint.getRowNumber(),
                     currentConstraint.getColoumnNumber(), currentConstraint.getCurrentVal());
             System.out.println();
-            actualSolve(increment(coords));
+            forwardSolve(increment(coords));
         }
         currentConstraint.getPossibleValues().stream().forEach( e ->{
-                  if(!this.rows.get(currentRow).contains(e)
-                        && !this.coloumns.get(currentColumn).contains(e)){
-                    currentConstraint.getSearch().addLast(e);
-                }});
+            if(!this.rows.get(currentRow).contains(e)
+                    && !this.coloumns.get(currentColumn).contains(e)){
+                currentConstraint.getSearch().addLast(e);
+            }});
 
         if (currentConstraint.getSearch().size() == 0){
             if (this.stack.peek().equals(currentConstraint)){
@@ -57,32 +62,33 @@ if (!this.stack.isEmpty() && this.stack.peek().equals(currentConstraint)){
             System.out.printf("Moving Backwards \n Row %3d : Column %3d : CurrentVal %3d", currentConstraint.getRowNumber(),
                     currentConstraint.getColoumnNumber(), currentConstraint.getCurrentVal());
             System.out.println();
-            actualSolve(this.decrement(coords));
+            this.retreat(decrement(coords));
         }
 
-
-        currentConstraint.setCurrentVal(currentConstraint.getSearch().poll());
+        this.rows.get(currentRow).add(currentConstraint.getCurrentVal());
+        this.coloumns.get(currentColumn).add(currentConstraint.getCurrentVal());
+        System.out.println();
+        this.stack.push(currentConstraint);
 
         currentConstraint.getCage().getConstraints().push(currentConstraint);
         if (currentConstraint.getCage().isFull()){
             if(!currentConstraint.getCage().isCageSatisfied()){
-                currentConstraint.getCage().getConstraints().pop();
-               if(currentConstraint.getSearch().size() == 0){
-                   while(!stack.peek().equals(currentConstraint.getCage().getConstraints().peek()))
-                       this.stack.pop();
-                       actualSolve(new int[]{currentConstraint.getRowNumber(), currentConstraint.getColoumnNumber()});
-               }
-
-               else{
-                   this.stack.add(currentConstraint);
-                   actualSolve(coords);
-               }
+                if(currentConstraint.getSearch().size() == 0){
+                    currentConstraint.getCage().getConstraints().pop();
+                    while(!stack.peek().equals(currentConstraint.getCage().getConstraints().peek())) {
+                        this.rows.get(stack.peek().getRow()).remove(stack.peek().getCurrentVal());
+                        this.coloumns.get(stack.peek().getColoumn()).remove(stack.peek().getCurrentVal());
+                        this.stack.pop();
+                    }
+                        retreat(new int[]{this.stack.peek().getRowNumber(), this.stack.peek().getColoumnNumber()});
+                }
+                else{
+                    this.retreat(coords);
+                }
             }
         }
-        this.rows.get(currentRow).add(currentConstraint.getCurrentVal());
-        this.coloumns.get(currentColumn).add(currentConstraint.getCurrentVal());
         System.out.printf("Moving Forward \n Row %3d : Column %3d : CurrentVal %3d", currentConstraint.getRowNumber(),
                 currentConstraint.getColoumnNumber(), currentConstraint.getCurrentVal());
-        System.out.println();
-        this.stack.push(currentConstraint);
-        actualSolve(increment(coords));
+        forwardSolve(increment(coords));
+
+}
