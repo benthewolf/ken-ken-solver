@@ -1,23 +1,18 @@
 package kenkensolver;
-import kenkensolver.KenBoard;
 
 import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Stack;
-import java.util.stream.Stream;
 
 public class Solver {
 
     Stack<Constraint> stack = new Stack<>();
     private int[][] solution;
     KenBoard board;
-    private String cap = "";
-    private String currMax = "";
     private Constraint currentConstraint;
     private HashMap<String, HashSet<Integer>> rows = new HashMap<>();
     private HashMap<String, HashSet<Integer>> coloumns = new HashMap<>();
-    private int count = 0;
 
     public Solver(KenBoard board) {
         this.board = board;
@@ -30,34 +25,15 @@ public class Solver {
         for (int a = 0; a < this.board.getSize(); ++a) {
             this.coloumns.put("column" + a, new HashSet<>());
         }
-
-        this.cap += Integer.toString(this.board.getSize() - 1);
-        this.cap += Integer.toString(this.board.getSize() - 1);
-    }
-
-    private boolean hasNext(Constraint currentConstraint) {
-        int[] front = increment(new int[]{currentConstraint.getRowNumber(), currentConstraint.getColoumnNumber()});
-        String frontstr = String.format("%02d", Integer.parseInt(Integer.toString(front[0]) + front[1]));
-        if (this.board.getConstraints().containsKey(frontstr)) {
-
-            return true;
-        } else {
-            return false;
-        }
     }
 
     public void solve() {
         this.currentConstraint = this.board.getConstraints().get("00");
-        try {
+
             this.evaluate();
-        } catch (NullPointerException e) {
 
-        } catch (EmptyStackException e) {
-
-        }
         this.render();
     }
-
 
     public void render() {
         int count = 0;
@@ -104,49 +80,44 @@ public class Solver {
                 this.stack.push(this.currentConstraint);
             }
             this.getNextConstraint();
-            this.evaluate();
-
     }
 
     private void backTrack() {
             if (this.stack.peek().equals(this.currentConstraint)) {
                 this.stack.pop();
+                this.clearCurrentValues();
             }
-            this.clearCurrentValues();
             if (!this.currentConstraint.getCage().getConstraints().isEmpty()
                     && this.currentConstraint.getCage().getConstraints().peek().equals(this.currentConstraint)) {
                 this.currentConstraint.getCage().getConstraints().pop();
             }
             this.getPreviousConstraint();
-            this.evaluate();
-
     }
 
 
     private void loop() {
 
-        if (!currMax.equals(this.cap)) {
             this.clearCurrentValues();
             if (this.currentConstraint.getSearch().size() == 0) {
                 this.backTrack();
-            }
-            this.currentConstraint.setCurrentVal(this.currentConstraint.getSearch().poll());
-            if (this.currentConstraint.getCage().isFull()) {
-                if (!this.currentConstraint.getCage().isCageSatisfied()) {
-                    if (this.currentConstraint.getSearch().size() == 0) {
-                        this.backTrack();
-                    } else {
-                        this.loop();
+            }else if(this.currentConstraint.getSearch().size() != 0) {
+                this.currentConstraint.setCurrentVal(this.currentConstraint.getSearch().poll());
+                if (this.currentConstraint.getCage().isFull()) {
+                    if (!this.currentConstraint.getCage().isCageSatisfied()) {
+                        if (this.currentConstraint.getSearch().size() == 0) {
+                            this.backTrack();
+                        } else if (this.currentConstraint.getSearch().size() != 0) {
+                            this.loop();
+                        }
+                    } else if (this.currentConstraint.getCage().isCageSatisfied()) {
+                        this.moveForward();
                     }
+                } else if (!this.currentConstraint.getCage().isFull()) {
+                    this.moveForward();
                 }
             }
-            this.moveForward();
-        }
-        if (currMax.equals(this.cap)) {
-
         }
 
-    }
 
     private void setSearchableValues() {
         this.currentConstraint.getPossibleValues().stream().forEach(e -> {
@@ -158,13 +129,16 @@ public class Solver {
     }
 
     private void evaluate() {
+        while(this.stack.size() != Math.pow(this.board.getSize(), 2)) {
             if (!this.stack.isEmpty() && this.stack.peek().equals(this.currentConstraint)) {
                 this.loop();
+                continue;
             }
             this.setSearchableValues();
 
             if (this.currentConstraint.getSearch().size() == 0) {
                 this.backTrack();
+                continue;
             }
             this.currentConstraint.setCurrentVal(this.currentConstraint.getSearch().poll());
             this.currentConstraint.getCage().getConstraints().push(this.currentConstraint);
@@ -172,18 +146,21 @@ public class Solver {
                 if (!this.currentConstraint.getCage().isCageSatisfied()) {
                     if (this.currentConstraint.getSearch().size() == 0) {
                         this.backTrack();
-                    } else {
+                        continue;
+                    } else if (this.currentConstraint.getSearch().size() != 0) {
                         this.loop();
+                        continue;
                     }
+                }else if(this.currentConstraint.getCage().isCageSatisfied()){
+                    this.moveForward();
+                    continue;
                 }
+            }else if(!this.currentConstraint.getCage().isFull()){
+                this.moveForward();
+                continue;
             }
-
-            this.moveForward();
         }
-
-
-
-
+        }
 
 private int[] decrement(int[] coords){
         if (coords[1] == 0){

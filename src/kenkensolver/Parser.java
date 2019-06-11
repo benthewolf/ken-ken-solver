@@ -16,8 +16,6 @@ public class Parser {
             Map.entry("-", METHOD.SUBTRACT)
     );
 
-
-
     public Parser(String path){
         this.rawFile = new File(path);
     }
@@ -62,6 +60,9 @@ public class Parser {
         catch (IOException e){
             System.out.println(e.getMessage());
             //System.out.println(e.getStackTrace());
+        }
+        catch (Exception e){
+            System.out.println("There was an Error when parsing the file");
         }
 
         return new KenBoard(line, map);
