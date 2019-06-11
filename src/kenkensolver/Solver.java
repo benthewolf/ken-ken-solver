@@ -12,8 +12,9 @@ public class Solver {
     Stack<Constraint> stack = new Stack<>();
     private int[][] solution;
     KenBoard board;
-private String cap = "";
-private String currMax = "";
+    private String cap = "";
+    private String currMax = "";
+    private Constraint currentConstraint;
     private HashMap<String, HashSet<Integer>> rows = new HashMap<>();
     private HashMap<String, HashSet<Integer>> coloumns = new HashMap<>();
     private int count = 0;
@@ -30,177 +31,157 @@ private String currMax = "";
             this.coloumns.put("column" + a, new HashSet<>());
         }
 
-        this.cap+= Integer.toString(this.board.getSize() - 1);
-        this.cap+= Integer.toString(this.board.getSize() - 1);
+        this.cap += Integer.toString(this.board.getSize() - 1);
+        this.cap += Integer.toString(this.board.getSize() - 1);
     }
 
-    private boolean hasNext(Constraint currentConstraint){
+    private boolean hasNext(Constraint currentConstraint) {
         int[] front = increment(new int[]{currentConstraint.getRowNumber(), currentConstraint.getColoumnNumber()});
         String frontstr = String.format("%02d", Integer.parseInt(Integer.toString(front[0]) + front[1]));
-        if (this.board.getConstraints().containsKey(frontstr)){
+        if (this.board.getConstraints().containsKey(frontstr)) {
 
             return true;
-        }
-
-        else {
+        } else {
             return false;
         }
     }
 
     public void solve() {
+        this.currentConstraint = this.board.getConstraints().get("00");
+        try {
+            this.evaluate();
+        } catch (NullPointerException e) {
 
-    try {
-    this.evaluate("00");
-    }
+        } catch (EmptyStackException e) {
 
-    catch (NullPointerException e){
-
-    }
-
-    catch (EmptyStackException e){
-
-    }
-    this.render();
+        }
+        this.render();
     }
 
 
-
-    public void render(){
+    public void render() {
         int count = 0;
-        int[] curr = {0,0};
-        for (int a = 0; a < Math.pow(this.board.getSize(),2); ++a){
+        int[] curr = {0, 0};
+        for (int a = 0; a < Math.pow(this.board.getSize(), 2); ++a) {
             String frontstr = String.format("%02d", Integer.parseInt(Integer.toString(curr[0]) + curr[1]));
             System.out.print(this.board.getConstraints().get(frontstr).getCurrentVal() + "  ");
-            if(count == this.board.getSize() - 1){
+            if (count == this.board.getSize() - 1) {
                 System.out.println();
                 count = -1;
             }
             ++count;
-           curr = increment(curr);
+            curr = increment(curr);
 
         }
     }
 
-    private int moveForward(String current) {
-        if (!currMax.equals(this.cap)){
-        Constraint currentConstraint = this.board.getConstraints().get(current);
-        String currentRow = currentConstraint.getRow();
-        String currentColumn = currentConstraint.getColoumn();
-        int[] front = increment(new int[]{currentConstraint.getRowNumber(), currentConstraint.getColoumnNumber()});
-        this.rows.get(currentRow).add(currentConstraint.getCurrentVal());
-        this.coloumns.get(currentColumn).add(currentConstraint.getCurrentVal());
-        if (!this.stack.contains(currentConstraint)) {
-            this.stack.push(currentConstraint);
-        }
-        this.evaluate(String.format("%02d", Integer.parseInt(Integer.toString(front[0]) + front[1])));
-        }
-        if (currMax.equals(this.cap)){
-            return 1;
-        }
-
-        return 1;
+    private void clearCurrentValues() {
+        this.rows.get(this.currentConstraint.getRow()).remove(this.currentConstraint.getCurrentVal());
+        this.coloumns.get(this.currentConstraint.getColoumn()).remove(this.currentConstraint.getCurrentVal());
     }
 
-    private int backTrack(String current) {
-        if (!currMax.equals(this.cap)){
-        Constraint currentConstraint = this.board.getConstraints().get(current);
-        String currentRow = currentConstraint.getRow();
-        String currentColumn = currentConstraint.getColoumn();
-        if (this.stack.peek().equals(currentConstraint)) {
-            this.stack.pop();
-            this.rows.get(currentRow).remove(currentConstraint.getCurrentVal());
-            this.coloumns.get(currentColumn).remove(currentConstraint.getCurrentVal());
-        }
-
-        int[] back = decrement(new int[]{currentConstraint.getRowNumber(), currentConstraint.getColoumnNumber()});
-        if (!currentConstraint.getCage().getConstraints().isEmpty() && currentConstraint.getCage().getConstraints().peek().equals(currentConstraint)) {
-            currentConstraint.getCage().getConstraints().pop();
-        }
-        this.evaluate(String.format("%02d", Integer.parseInt(Integer.toString(back[0]) + back[1])));
-        }
-        if (currMax.equals(this.cap)){
-            return 1;
-        }
-        return 1;
+    private void addCurrentValues() {
+        this.rows.get(this.currentConstraint.getRow()).add(this.currentConstraint.getCurrentVal());
+        this.coloumns.get(this.currentConstraint.getColoumn()).add(this.currentConstraint.getCurrentVal());
     }
 
+    private void getPreviousConstraint() {
+        int[] previous = {this.currentConstraint.getRowNumber(), this.currentConstraint.getColoumnNumber()};
+        previous = decrement(previous);
+        this.currentConstraint = this.board.getConstraints().get(Integer.toString(previous[0]) + previous[1]);
+    }
 
-    private int loop(String current) {
+    private void getNextConstraint() {
+        int[] next = {this.currentConstraint.getRowNumber(), this.currentConstraint.getColoumnNumber()};
+        next = increment(next);
+        this.currentConstraint = this.board.getConstraints().get(Integer.toString(next[0]) + next[1]);
+    }
 
-        if(!currMax.equals(this.cap)) {
-            Constraint currentConstraint = this.board.getConstraints().get(current);
-            String currentRow = currentConstraint.getRow();
-            String currentColumn = currentConstraint.getColoumn();
-            this.rows.get(currentRow).remove(currentConstraint.getCurrentVal());
-            this.coloumns.get(currentColumn).remove(currentConstraint.getCurrentVal());
-            if (currentConstraint.getSearch().size() == 0) {
-                 return this.backTrack(current);
+    private void moveForward() {
+
+            this.addCurrentValues();
+            if (!this.stack.contains(this.currentConstraint)) {
+                this.stack.push(this.currentConstraint);
             }
-            currentConstraint.setCurrentVal(currentConstraint.getSearch().poll());
-            if (currentConstraint.getCage().isFull()) {
-                if (!currentConstraint.getCage().isCageSatisfied()) {
-                    if (currentConstraint.getSearch().size() == 0) {
-                        return this.backTrack(current);
+            this.getNextConstraint();
+            this.evaluate();
+
+    }
+
+    private void backTrack() {
+            if (this.stack.peek().equals(this.currentConstraint)) {
+                this.stack.pop();
+            }
+            this.clearCurrentValues();
+            if (!this.currentConstraint.getCage().getConstraints().isEmpty()
+                    && this.currentConstraint.getCage().getConstraints().peek().equals(this.currentConstraint)) {
+                this.currentConstraint.getCage().getConstraints().pop();
+            }
+            this.getPreviousConstraint();
+            this.evaluate();
+
+    }
+
+
+    private void loop() {
+
+        if (!currMax.equals(this.cap)) {
+            this.clearCurrentValues();
+            if (this.currentConstraint.getSearch().size() == 0) {
+                this.backTrack();
+            }
+            this.currentConstraint.setCurrentVal(this.currentConstraint.getSearch().poll());
+            if (this.currentConstraint.getCage().isFull()) {
+                if (!this.currentConstraint.getCage().isCageSatisfied()) {
+                    if (this.currentConstraint.getSearch().size() == 0) {
+                        this.backTrack();
                     } else {
-                         return this.loop(current);
+                        this.loop();
                     }
                 }
             }
-            this.moveForward(current);
+            this.moveForward();
         }
-        if (currMax.equals(this.cap)){
-            return 1;
+        if (currMax.equals(this.cap)) {
+
         }
-        return 1;
+
     }
 
-    private int evaluate(String current) {
-        if(!currMax.equals(this.cap)) {
-            if (current.equals(this.cap)){
-                currMax = current;
+    private void setSearchableValues() {
+        this.currentConstraint.getPossibleValues().stream().forEach(e -> {
+            if (!this.rows.get(this.currentConstraint.getRow()).contains(e)
+                    && !this.coloumns.get(this.currentConstraint.getColoumn()).contains(e)) {
+                this.currentConstraint.getSearch().addLast(e);
             }
-            Constraint currentConstraint = this.board.getConstraints().get(current);
-            String currentRow = currentConstraint.getRow();
-            String currentColumn = currentConstraint.getColoumn();
-            if (!this.stack.isEmpty() && this.stack.peek().equals(currentConstraint)) {
-               return this.loop(current);
-            }
-                currentConstraint.getPossibleValues().stream().forEach(e -> {
-                    if (!this.rows.get(currentRow).contains(e)
-                            && !this.coloumns.get(currentColumn).contains(e)) {
-                        currentConstraint.getSearch().addLast(e);
-                    }
-                });
+        });
+    }
 
-                if (currentConstraint.getSearch().size() == 0) {
-                   return this.backTrack(current);
-                }
-                currentConstraint.setCurrentVal(currentConstraint.getSearch().poll());
-                currentConstraint.getCage().getConstraints().push(currentConstraint);
-                if (currentConstraint.getCage().isFull()) {
-                    if (!currentConstraint.getCage().isCageSatisfied()) {
-                        if (currentConstraint.getSearch().size() == 0) {
-                          return  this.backTrack(current);
-                        } else {
-                          return  this.loop(current);
-                        }
+    private void evaluate() {
+            if (!this.stack.isEmpty() && this.stack.peek().equals(this.currentConstraint)) {
+                this.loop();
+            }
+            this.setSearchableValues();
+
+            if (this.currentConstraint.getSearch().size() == 0) {
+                this.backTrack();
+            }
+            this.currentConstraint.setCurrentVal(this.currentConstraint.getSearch().poll());
+            this.currentConstraint.getCage().getConstraints().push(this.currentConstraint);
+            if (this.currentConstraint.getCage().isFull()) {
+                if (!this.currentConstraint.getCage().isCageSatisfied()) {
+                    if (this.currentConstraint.getSearch().size() == 0) {
+                        this.backTrack();
+                    } else {
+                        this.loop();
                     }
                 }
-
-            if (currMax.equals(this.cap)){
-                if (current.equals(currMax)) {
-                    this.stack.push(currentConstraint);
-                   return 1;
-                }
-
-                return 1;
             }
-              return this.moveForward(current);
+
+            this.moveForward();
         }
 
-return 1;
 
-}
 
 
 
