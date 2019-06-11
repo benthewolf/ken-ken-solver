@@ -14,9 +14,6 @@ public class KenBoard {
         for (int a=0 ; a < size ; ++a){
             for(int b = 0; b < size ; ++b){
               Constraint temp = this.constraints.get(Integer.toString(a)+b);
-              if (temp.getMethod() == Constraint.METHOD.EQUALTO){
-                  this.freebie = temp;
-              }
               temp.setColoumn("column" + b);
               temp.setColoumnNumber(b);
               temp.setRowNumber(a);

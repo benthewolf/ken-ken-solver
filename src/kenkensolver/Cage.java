@@ -65,6 +65,17 @@ public class Cage {
             else
                 return false;
         });
+
+        this.checker.put(Constraint.METHOD.EQUALTO, e ->{
+            if (this.constraints.get(0).getCurrentVal() == this.result){
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        });
     }
 
     public boolean isCageSatisfied(){

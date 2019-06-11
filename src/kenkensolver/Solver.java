@@ -48,12 +48,6 @@ private String currMax = "";
     }
 
     public void solve() {
-        Constraint freebie = this.board.getFreebie();
-        if (freebie != null) {
-            this.rows.get(freebie.getRow()).add(freebie.getResult());
-            this.coloumns.get(freebie.getColoumn()).add(freebie.getResult());
-            freebie.setCurrentVal(freebie.getPossibleValues().get(0));
-        }
 
     try {
     this.evaluate("00");
@@ -66,8 +60,6 @@ private String currMax = "";
     catch (EmptyStackException e){
 
     }
-        if (freebie != null){
-        freebie.setCurrentVal(freebie.getPossibleValues().get(0));}
     this.render();
     }
 
@@ -89,36 +81,27 @@ private String currMax = "";
         }
     }
 
-    private void moveForward(String current) {
+    private int moveForward(String current) {
         if (!currMax.equals(this.cap)){
         Constraint currentConstraint = this.board.getConstraints().get(current);
         String currentRow = currentConstraint.getRow();
         String currentColumn = currentConstraint.getColoumn();
         int[] front = increment(new int[]{currentConstraint.getRowNumber(), currentConstraint.getColoumnNumber()});
-        String frontstr = String.format("%02d", Integer.parseInt(Integer.toString(front[0]) + front[1]));
-
         this.rows.get(currentRow).add(currentConstraint.getCurrentVal());
         this.coloumns.get(currentColumn).add(currentConstraint.getCurrentVal());
         if (!this.stack.contains(currentConstraint)) {
             this.stack.push(currentConstraint);
         }
-
-            if (this.board.getConstraints().get(frontstr).getMethod() == Constraint.METHOD.EQUALTO) {
-                if (!this.stack.contains(this.board.getConstraints().get(frontstr))){
-                    this.stack.push(this.board.getConstraints().get(frontstr));
-                }
-                front = increment(front);
-            }
-
         this.evaluate(String.format("%02d", Integer.parseInt(Integer.toString(front[0]) + front[1])));
         }
-
         if (currMax.equals(this.cap)){
-            return;
+            return 1;
         }
+
+        return 1;
     }
 
-    private void backTrack(String current) {
+    private int backTrack(String current) {
         if (!currMax.equals(this.cap)){
         Constraint currentConstraint = this.board.getConstraints().get(current);
         String currentRow = currentConstraint.getRow();
@@ -130,25 +113,19 @@ private String currMax = "";
         }
 
         int[] back = decrement(new int[]{currentConstraint.getRowNumber(), currentConstraint.getColoumnNumber()});
-        String frontstr = String.format("%02d", Integer.parseInt(Integer.toString(back[0]) + back[1]));
-        if (this.board.getConstraints().get(frontstr).getMethod() == Constraint.METHOD.EQUALTO) {
-            if (this.stack.peek().equals(this.board.getConstraints().get(frontstr))){
-                this.stack.push(this.board.getConstraints().get(frontstr));
-            }
-            back = decrement(back);
-        }
-        if (currentConstraint.getCage().getConstraints().peek().equals(currentConstraint)) {
+        if (!currentConstraint.getCage().getConstraints().isEmpty() && currentConstraint.getCage().getConstraints().peek().equals(currentConstraint)) {
             currentConstraint.getCage().getConstraints().pop();
         }
         this.evaluate(String.format("%02d", Integer.parseInt(Integer.toString(back[0]) + back[1])));
         }
         if (currMax.equals(this.cap)){
-            return;
+            return 1;
         }
+        return 1;
     }
 
 
-    private void loop(String current) {
+    private int loop(String current) {
 
         if(!currMax.equals(this.cap)) {
             Constraint currentConstraint = this.board.getConstraints().get(current);
@@ -157,39 +134,36 @@ private String currMax = "";
             this.rows.get(currentRow).remove(currentConstraint.getCurrentVal());
             this.coloumns.get(currentColumn).remove(currentConstraint.getCurrentVal());
             if (currentConstraint.getSearch().size() == 0) {
-                this.backTrack(current);
+                 return this.backTrack(current);
             }
             currentConstraint.setCurrentVal(currentConstraint.getSearch().poll());
             if (currentConstraint.getCage().isFull()) {
                 if (!currentConstraint.getCage().isCageSatisfied()) {
                     if (currentConstraint.getSearch().size() == 0) {
-                        this.backTrack(current);
+                        return this.backTrack(current);
                     } else {
-                        this.loop(current);
+                         return this.loop(current);
                     }
                 }
             }
             this.moveForward(current);
         }
         if (currMax.equals(this.cap)){
-            return;
+            return 1;
         }
-
+        return 1;
     }
 
-    private void evaluate(String current) {
+    private int evaluate(String current) {
         if(!currMax.equals(this.cap)) {
             if (current.equals(this.cap)){
                 currMax = current;
             }
             Constraint currentConstraint = this.board.getConstraints().get(current);
-            System.out.printf("Moving  \n Row %3d : Column %3d : CurrentVal %3d", currentConstraint.getRowNumber(),
-                    currentConstraint.getColoumnNumber(), currentConstraint.getCurrentVal());
-            System.out.println();
             String currentRow = currentConstraint.getRow();
             String currentColumn = currentConstraint.getColoumn();
             if (!this.stack.isEmpty() && this.stack.peek().equals(currentConstraint)) {
-                this.loop(current);
+               return this.loop(current);
             }
                 currentConstraint.getPossibleValues().stream().forEach(e -> {
                     if (!this.rows.get(currentRow).contains(e)
@@ -199,16 +173,16 @@ private String currMax = "";
                 });
 
                 if (currentConstraint.getSearch().size() == 0) {
-                    this.backTrack(current);
+                   return this.backTrack(current);
                 }
                 currentConstraint.setCurrentVal(currentConstraint.getSearch().poll());
                 currentConstraint.getCage().getConstraints().push(currentConstraint);
                 if (currentConstraint.getCage().isFull()) {
                     if (!currentConstraint.getCage().isCageSatisfied()) {
                         if (currentConstraint.getSearch().size() == 0) {
-                            this.backTrack(current);
+                          return  this.backTrack(current);
                         } else {
-                            this.loop(current);
+                          return  this.loop(current);
                         }
                     }
                 }
@@ -216,14 +190,15 @@ private String currMax = "";
             if (currMax.equals(this.cap)){
                 if (current.equals(currMax)) {
                     this.stack.push(currentConstraint);
+                   return 1;
                 }
 
-                return;
+                return 1;
             }
-                this.moveForward(current);
+              return this.moveForward(current);
         }
 
-
+return 1;
 
 }
 
