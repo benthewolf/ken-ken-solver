@@ -1,6 +1,4 @@
 package kenkensolver;
-
-import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Stack;
@@ -28,7 +26,13 @@ public class Solver {
     }
 
     public void solve() {
-        this.currentConstraint = this.board.getConstraints().get("00");
+        try {
+            this.currentConstraint = this.board.getConstraints().get("00");
+        }
+        catch (Exception e){
+            System.out.println("THERE IS NOT SOLUTION");
+            System.exit(-1);
+        }
 
             this.evaluate();
 

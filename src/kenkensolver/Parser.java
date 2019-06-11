@@ -62,7 +62,9 @@ public class Parser {
             //System.out.println(e.getStackTrace());
         }
         catch (Exception e){
-            System.out.println("There was an Error when parsing the file");
+            System.out.println("There was an Error when parsing the file. Exit");
+            System.exit(-1);
+
         }
 
         return new KenBoard(line, map);
