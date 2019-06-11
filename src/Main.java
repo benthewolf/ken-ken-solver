@@ -7,7 +7,7 @@ public class Main {
         long current = System.currentTimeMillis();
         Solver solver = new Solver(new Parser("const.txt").parse());
         solver.solve();
-        System.out.print(System.currentTimeMillis() - current);
+        System.out.print("\nCompleted in: "  + (System.currentTimeMillis() - current) + " ms");
 
 
     }

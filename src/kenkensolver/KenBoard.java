@@ -5,7 +5,7 @@ public class KenBoard {
 
     private int size;
     private HashMap<String,Constraint> constraints;
-    private Constraint freebie;
+    private Constraint freebie = null;
 
     public KenBoard (int size , HashMap<String, Constraint> map){
         this.size = size;
