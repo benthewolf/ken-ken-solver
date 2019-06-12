@@ -1,96 +1,63 @@
 package kenkensolver;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Stack;
-
 public class Solver {
-
-    Stack<Constraint> stack = new Stack<>();
-    private int[][] solution;
     KenBoard board;
+    Boolean stop = false;
     private Constraint currentConstraint;
-    private HashMap<String, HashSet<Integer>> rows = new HashMap<>();
-    private HashMap<String, HashSet<Integer>> coloumns = new HashMap<>();
 
     public Solver(KenBoard board) {
         this.board = board;
-        this.solution = new int[this.board.getSize()][this.board.getSize()];
-
-        for (int a = 0; a < this.board.getSize(); ++a) {
-            this.rows.put("row" + a, new HashSet<>());
-        }
-
-        for (int a = 0; a < this.board.getSize(); ++a) {
-            this.coloumns.put("column" + a, new HashSet<>());
-        }
     }
 
     public void solve() {
-        try {
-            this.currentConstraint = this.board.getConstraints().get("00");
-        }
-        catch (Exception e){
-            System.out.println("THERE IS NOT SOLUTION");
-            System.exit(-1);
-        }
-
+        this.currentConstraint = this.board.getConstraints()[0][0];
             this.evaluate();
 
         this.render();
     }
 
     public void render() {
-        int count = 0;
-        int[] curr = {0, 0};
-        for (int a = 0; a < Math.pow(this.board.getSize(), 2); ++a) {
-            String frontstr = String.format("%02d", Integer.parseInt(Integer.toString(curr[0]) + curr[1]));
-            System.out.print(this.board.getConstraints().get(frontstr).getCurrentVal() + "  ");
-            if (count == this.board.getSize() - 1) {
-                System.out.println();
-                count = -1;
-            }
-            ++count;
-            curr = increment(curr);
 
+
+        for (int a = 0 ; a < this.board.getSize() ; ++a) {
+            for (int b = 0; b < this.board.getSize() ; ++ b){
+            System.out.print(this.board.getConstraints()[a][b].getCurrentVal() + "  ");
+            }
+            System.out.println();
         }
     }
 
     private void clearCurrentValues() {
-        this.rows.get(this.currentConstraint.getRow()).remove(this.currentConstraint.getCurrentVal());
-        this.coloumns.get(this.currentConstraint.getColoumn()).remove(this.currentConstraint.getCurrentVal());
+        this.currentConstraint.setCurrentVal(0);
     }
 
-    private void addCurrentValues() {
-        this.rows.get(this.currentConstraint.getRow()).add(this.currentConstraint.getCurrentVal());
-        this.coloumns.get(this.currentConstraint.getColoumn()).add(this.currentConstraint.getCurrentVal());
+    private void addCurrentValue() {
+        this.currentConstraint.setCurrentVal(this.currentConstraint.getSearch().poll());
     }
 
     private void getPreviousConstraint() {
         int[] previous = {this.currentConstraint.getRowNumber(), this.currentConstraint.getColoumnNumber()};
         previous = decrement(previous);
-        this.currentConstraint = this.board.getConstraints().get(Integer.toString(previous[0]) + previous[1]);
+        this.currentConstraint = this.board.getConstraints()[previous[0]][previous[1]];
     }
 
     private void getNextConstraint() {
         int[] next = {this.currentConstraint.getRowNumber(), this.currentConstraint.getColoumnNumber()};
         next = increment(next);
-        this.currentConstraint = this.board.getConstraints().get(Integer.toString(next[0]) + next[1]);
+        if(this.currentConstraint.getRowNumber() == this.board.getSize() - 1
+                && this.currentConstraint.getColoumnNumber() == this.board.getSize() - 1 ){
+            this.stop = true;
+            return;
+        }
+        this.currentConstraint = this.board.getConstraints()[next[0]][next[1]];
     }
 
     private void moveForward() {
-
-            this.addCurrentValues();
-            if (!this.stack.contains(this.currentConstraint)) {
-                this.stack.push(this.currentConstraint);
-            }
+            //this.addCurrentValue();
             this.getNextConstraint();
     }
 
     private void backTrack() {
-            if (this.stack.peek().equals(this.currentConstraint)) {
-                this.stack.pop();
-                this.clearCurrentValues();
-            }
+            this.clearCurrentValues();
             if (!this.currentConstraint.getCage().getConstraints().isEmpty()
                     && this.currentConstraint.getCage().getConstraints().peek().equals(this.currentConstraint)) {
                 this.currentConstraint.getCage().getConstraints().pop();
@@ -105,7 +72,7 @@ public class Solver {
             if (this.currentConstraint.getSearch().size() == 0) {
                 this.backTrack();
             }else if(this.currentConstraint.getSearch().size() != 0) {
-                this.currentConstraint.setCurrentVal(this.currentConstraint.getSearch().poll());
+                this.addCurrentValue();
                 if (this.currentConstraint.getCage().isFull()) {
                     if (!this.currentConstraint.getCage().isCageSatisfied()) {
                         if (this.currentConstraint.getSearch().size() == 0) {
@@ -122,19 +89,39 @@ public class Solver {
             }
         }
 
-
-    private void setSearchableValues() {
-        this.currentConstraint.getPossibleValues().stream().forEach(e -> {
-            if (!this.rows.get(this.currentConstraint.getRow()).contains(e)
-                    && !this.coloumns.get(this.currentConstraint.getColoumn()).contains(e)) {
-                this.currentConstraint.getSearch().addLast(e);
+private Boolean checkRow(int a){
+        int row = this.currentConstraint.getRowNumber();
+        int size = this.board.getSize();
+        for (int b = 0; b < size; ++b ){
+            if (this.board.getConstraints()[row][b].getCurrentVal() == a){
+              return true;
             }
-        });
+
+        }
+        return false;
+}
+
+private Boolean checkColumn (int a){
+    int column = this.currentConstraint.getColoumnNumber();
+    int size = this.board.getSize();
+    for (int b = 0; b < size; ++b ){
+        if (this.board.getConstraints()[b][column].getCurrentVal() == a){
+            return true;
+        }
+
+    }
+    return false;
+}
+    private void setSearchableValues() {
+        this.currentConstraint.getPossibleValues()
+                .stream()
+                .filter(e -> !this.checkColumn(e) && !this.checkRow(e))
+                .forEach(g -> this.currentConstraint.getSearch().addLast(g));
     }
 
     private void evaluate() {
-        while(this.stack.size() != Math.pow(this.board.getSize(), 2)) {
-            if (!this.stack.isEmpty() && this.stack.peek().equals(this.currentConstraint)) {
+        while(!this.stop) {
+            if (this.currentConstraint.getCurrentVal() != 0) {
                 this.loop();
                 continue;
             }
@@ -144,7 +131,7 @@ public class Solver {
                 this.backTrack();
                 continue;
             }
-            this.currentConstraint.setCurrentVal(this.currentConstraint.getSearch().poll());
+            this.addCurrentValue();
             this.currentConstraint.getCage().getConstraints().push(this.currentConstraint);
             if (this.currentConstraint.getCage().isFull()) {
                 if (!this.currentConstraint.getCage().isCageSatisfied()) {

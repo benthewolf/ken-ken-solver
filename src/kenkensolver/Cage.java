@@ -27,6 +27,10 @@ public class Cage {
                     / this.constraints.get(1).getCurrentVal() == this.result){
                 return true;
             }
+            else if (this.constraints.get(1).getCurrentVal() /
+                    this.constraints.get(0).getCurrentVal() == this.result){
+                return true;
+            }
 
             else {return false;}
         });

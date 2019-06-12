@@ -26,7 +26,8 @@ public class Parser {
     public KenBoard parse(){
 
         int line = 0;
-        HashMap<String, Constraint> map = new HashMap<String, Constraint>();
+        Constraint[][] tempContainer = {{}};
+        //HashMap<String, Constraint> map = new HashMap<String, Constraint>();
         try(
         DataInputStream reader = new DataInputStream(new FileInputStream(this.rawFile))
         ){
@@ -36,10 +37,11 @@ public class Parser {
             while (scan.hasNextLine()){
                 if (line == 0){
                     line = Integer.parseInt(scan.nextLine());
+                    tempContainer = new Constraint[line][line];
                     continue;
                 }
 
-                String[] currentLine = scan.nextLine().split(" ");
+                String[] currentLine = scan.nextLine().trim().split(" ");
                 int result = Integer.parseInt(currentLine[0]);
                 METHOD method = this.rules.get(currentLine[1]);
                 Cage cage = new Cage(result, method);
@@ -48,12 +50,14 @@ public class Parser {
                 for (int a = 2; a < currentLine.length; a+=2){
                     cage.setSize(cage.getSize() + 1);
                     String currentcoords = currentLine[a] + currentLine[a+1];
-                    map.put(currentcoords, new Constraint(method, currentcoords, result,line, cage));
+                    Constraint temp = new Constraint(method, currentcoords, result,line, cage);
+                    temp.setRowNumber(Integer.parseInt(currentLine[a]));
+                    temp.setColoumnNumber(Integer.parseInt(currentLine[a+1]));
+                    tempContainer[temp.getRowNumber()][temp.getColoumnNumber()] = temp;
+                    //map.put(currentcoords, temp);
                 }
 
             }
-
-            return new KenBoard(line, map);
 
         }
 
@@ -61,13 +65,8 @@ public class Parser {
             System.out.println(e.getMessage());
             //System.out.println(e.getStackTrace());
         }
-        catch (Exception e){
-            System.out.println("There was an Error when parsing the file. Exit");
-            System.exit(-1);
 
-        }
-
-        return new KenBoard(line, map);
+        return new KenBoard(line, tempContainer);
     }
 
 }

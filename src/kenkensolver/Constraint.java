@@ -18,7 +18,7 @@ public class Constraint {
     private List<Integer> possibleValues = new ArrayList<>();
     private int size;
     private ArrayDeque<Integer> Search = new ArrayDeque<>();
-    private int currentVal;
+    private int currentVal = 0;
     private Cage cage;
 
     public Constraint(METHOD method,
