@@ -11,8 +11,6 @@ public class Constraint {
 
     private int result;
     private String coordinates;
-    private String row;
-    private String coloumn;
     private int coloumnNumber;
     private int rowNumber;
     private List<Integer> possibleValues = new ArrayList<>();
@@ -30,15 +28,8 @@ public class Constraint {
          this.size = size;
          this.cage = cage;
 
-         if (this.method == METHOD.MULTIPLY){
-             this.getFactors();
-         }
 
-         else if(this.method == METHOD.DIVIDE){
-             this.getDivsors();
-         }
-
-         else if (this.method == METHOD.EQUALTO){
+         if (this.method == METHOD.EQUALTO){
              possibleValues.add(this.result);
          }
 
@@ -47,22 +38,6 @@ public class Constraint {
          }
 
      }
-
-    public void setColoumn(String coloumn) {
-        this.coloumn = coloumn;
-    }
-
-    public void setRow(String row) {
-        this.row = row;
-    }
-
-    public String getRow() {
-        return row;
-    }
-
-    public String getColoumn() {
-        return coloumn;
-    }
 
     public List<Integer> getPossibleValues() {
         return possibleValues;
@@ -88,6 +63,10 @@ public class Constraint {
         return rowNumber;
     }
 
+    public String getCoordinates() {
+        return coordinates;
+    }
+
     public void setColoumnNumber(int coloumnNumber) {
         this.coloumnNumber = coloumnNumber;
     }
@@ -96,37 +75,12 @@ public class Constraint {
         this.rowNumber = rowNumber;
     }
 
-    public int getResult() {
-        return result;
-    }
-
     private void getFullRange(int a){
         for (; a > 0; --a){
             this.possibleValues.add(a);
         }
      }
 
-     private void getDivsors() {
-         for (int b = this.size; b > 0; --b) {
-             if (b % this.result == 0 || b == 1) {
-                 this.possibleValues.add(b);
-             }
-         }
-     }
-
-     private void getFactors(){
-
-        for (int a = this.size; a > 0; --a){
-            if (this.result % a == 0){
-                this.possibleValues.add(a);
-            }
-        }
-
-     }
-
-    public METHOD getMethod() {
-        return method;
-    }
 
     public Cage getCage() {
         return cage;
@@ -135,8 +89,9 @@ public class Constraint {
     @Override
     public boolean equals(Object obj) {
 
-        if (this.rowNumber == ((Constraint) obj).getRowNumber() &&
-       this.coloumnNumber == ((Constraint) obj).getColoumnNumber()){
+        if (this.coordinates.equals(
+                ((Constraint) obj).getCoordinates()
+        )){
           return true;
       }
 

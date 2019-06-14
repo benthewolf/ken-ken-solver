@@ -1,4 +1,5 @@
 package kenkensolver;
+import java.util.List;
 public class Solver {
     KenBoard board;
     Boolean stop = false;
@@ -8,12 +9,12 @@ public class Solver {
         this.board = board;
     }
 
-    public void solve() {
+    public void solve(){
         this.currentConstraint = this.board.getConstraints()[0][0];
             this.evaluate();
-
         this.render();
     }
+
 
     public void render() {
 
@@ -24,6 +25,8 @@ public class Solver {
             }
             System.out.println();
         }
+
+        System.out.println("\n");
     }
 
     private void clearCurrentValues() {
@@ -52,19 +55,19 @@ public class Solver {
     }
 
     private void moveForward() {
-            //this.addCurrentValue();
             this.getNextConstraint();
     }
 
     private void backTrack() {
-            this.clearCurrentValues();
-            if (!this.currentConstraint.getCage().getConstraints().isEmpty()
-                    && this.currentConstraint.getCage().getConstraints().peek().equals(this.currentConstraint)) {
-                this.currentConstraint.getCage().getConstraints().pop();
-            }
-            this.getPreviousConstraint();
-    }
 
+    this.clearCurrentValues();
+    if (!this.currentConstraint.getCage().getConstraints().isEmpty()
+            && this.currentConstraint.getCage().getConstraints().peek().equals(this.currentConstraint)) {
+        this.currentConstraint.getCage().getConstraints().pop();
+    }
+    this.getPreviousConstraint();
+
+}
 
     private void loop() {
 
@@ -113,13 +116,16 @@ private Boolean checkColumn (int a){
     return false;
 }
     private void setSearchableValues() {
-        this.currentConstraint.getPossibleValues()
-                .stream()
-                .filter(e -> !this.checkColumn(e) && !this.checkRow(e))
-                .forEach(g -> this.currentConstraint.getSearch().addLast(g));
+        List<Integer> vals = this.currentConstraint.getPossibleValues();
+        for (Integer a: vals){
+            if (!this.checkColumn(a) && !this.checkRow(a)){
+                this.currentConstraint.getSearch().addLast(a);
+            }
+        }
+
     }
 
-    private void evaluate() {
+    private void evaluate(){
         while(!this.stop) {
             if (this.currentConstraint.getCurrentVal() != 0) {
                 this.loop();

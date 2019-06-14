@@ -7,6 +7,7 @@ import kenkensolver.Constraint.METHOD;
 public class Parser {
 
     private File rawFile;
+    private ArrayList<Cage> cages = new ArrayList<>();
 
     private final Map<String,METHOD> rules = Map.ofEntries(
             Map.entry("*", METHOD.MULTIPLY),
@@ -19,15 +20,11 @@ public class Parser {
     public Parser(String path){
         this.rawFile = new File(path);
     }
-    public Parser(File file){
-        this.rawFile = file;
-    }
 
     public KenBoard parse(){
 
         int line = 0;
         Constraint[][] tempContainer = {{}};
-        //HashMap<String, Constraint> map = new HashMap<String, Constraint>();
         try(
         DataInputStream reader = new DataInputStream(new FileInputStream(this.rawFile))
         ){
@@ -54,8 +51,8 @@ public class Parser {
                     temp.setRowNumber(Integer.parseInt(currentLine[a]));
                     temp.setColoumnNumber(Integer.parseInt(currentLine[a+1]));
                     tempContainer[temp.getRowNumber()][temp.getColoumnNumber()] = temp;
-                    //map.put(currentcoords, temp);
                 }
+
 
             }
 
@@ -63,9 +60,7 @@ public class Parser {
 
         catch (IOException e){
             System.out.println(e.getMessage());
-            //System.out.println(e.getStackTrace());
         }
-
         return new KenBoard(line, tempContainer);
     }
 
